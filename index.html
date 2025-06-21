@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia Mítica</title>
+    
+    <!-- Scripts y Estilos Externos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- NUESTRO ARCHIVO DE ESTILOS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Contenedor para la Pantalla de Selección de Raza -->
+    <div id="race-selection-screen">
+        <div class="container mx-auto max-w-7xl bg-black bg-opacity-40 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm">
+            <header class="text-center mb-6 md:mb-10">
+                <h1 class="text-4xl md:text-6xl font-title font-bold text-white tracking-wider">Academia Mítica</h1>
+                <p class="text-lg md:text-xl text-gray-400 mt-2">Elige tu linaje. Forja tu destino.</p>
+            </header>
+            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1">
+                    <h2 class="text-2xl font-title text-center lg:text-left mb-4">Selecciona tu Raza</h2>
+                    <div id="race-selection-container" class="space-y-4">
+                        <!-- Las tarjetas de raza se insertarán aquí por JS -->
+                    </div>
+                </div>
+                <div id="details-panel" class="lg:col-span-2 bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700">
+                    <div id="placeholder-panel" class="text-center flex flex-col items-center justify-center h-full">
+                        <svg class="w-24 h-24 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <h3 class="font-title text-xl text-gray-400">Selecciona una raza para ver sus detalles</h3>
+                        <p class="text-gray-500">Cada linaje posee dones y desafíos únicos.</p>
+                    </div>
+                    <div id="race-details-content" class="hidden">
+                        <!-- El contenido detallado se insertará aquí por JS -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Contenedor para la Pantalla de Creación de Personaje (inicialmente oculta) -->
+    <div id="character-creation-screen" class="hidden">
+        <div class="container mx-auto max-w-2xl bg-black bg-opacity-40 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm">
+            <header class="text-center mb-6 md:mb-8">
+                <h1 class="text-3xl md:text-5xl font-title font-bold text-white tracking-wider">Crea tu Personaje</h1>
+                <p id="race-subtitle" class="text-lg md:text-xl text-yellow-400 mt-2"></p>
+            </header>
+            <main id="character-creation-form">
+                <div class="mb-6">
+                    <label for="char-name" class="block font-title text-xl mb-2">Nombre del Personaje</label>
+                    <input type="text" id="char-name" placeholder="Escribe un nombre..." class="form-input w-full p-3 text-lg">
+                </div>
+                <div class="mb-8">
+                    <h2 class="block font-title text-xl mb-3">Elige tu Apariencia</h2>
+                    <div id="avatar-selection-container" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Los avatares se insertarán aquí por JS -->
+                    </div>
+                </div>
+                <div class="text-center">
+                     <button id="confirm-character-btn" disabled class="action-button font-bold py-3 px-12 rounded-lg text-xl font-title tracking-wider">
+                        Comenzar Aventura
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- NUESTRO ARCHIVO JAVASCRIPT -->
+    <script src="js/main.js"></script>
+</body>
+</html>
