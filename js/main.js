@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Usamos las funciones de Firebase que importamos en el HTML
     const { 
         initializeApp, getAuth, createUserWithEmailAndPassword, 
-        signInWithEmailAndPassword, getFirestore, doc, setDoc, getDoc
+        signInWithEmailAndPassword, signOut, getFirestore, 
+        doc, setDoc, getDoc 
     } = window.firebase;
 
     // Inicializar Firebase
@@ -43,14 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
     // 3. ESTADO DEL JUEGO Y ELEMENTOS DEL DOM
     // =================================================================
-    let gameState = {
-        currentUser: null,
-        characterData: null,
-        chosenRace: null,
-        characterName: null,
-        selectedAvatar: null,
-        dialogueIndex: 0
+    let gameState = {};
+    const resetGameState = () => {
+        gameState = {
+            currentUser: null,
+            characterData: null,
+            chosenRace: null,
+            characterName: null,
+            selectedAvatar: null,
+            dialogueIndex: 0
+        };
     };
+    resetGameState(); // Inicializa el estado del juego
 
     const screens = {
         auth: document.getElementById('auth-screen'),
@@ -64,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginTab = document.getElementById('login-tab');
     const registerTab = document.getElementById('register-tab');
     const authError = document.getElementById('auth-error');
+    const logoutBtn = document.getElementById('logout-btn');
     const raceSelectionContainer = document.getElementById('race-selection-container');
     const raceDetailsContent = document.getElementById('race-details-content');
     const placeholderPanel = document.getElementById('placeholder-panel');
@@ -152,10 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const dialogueScript = [
-        { character: "Director", text: "Bienvenido a la Academia Mítica. Veo que has llegado sin problemas." },
+        { character: "Director", text: "Bienvenido de nuevo, {{PLAYER_NAME}}. Veo que has llegado sin problemas." },
         { character: "???", text: "Aunque... percibo algo... diferente en ti. Un potencial que no había sentido en siglos." },
         { character: "TÚ", text: "(Un escalofrío recorre mi espalda. ¿A qué se refiere?)" },
-        { character: "Director", text: "Sea como sea, {{PLAYER_NAME}}, tu nueva vida comienza ahora. No nos decepciones." },
+        { character: "Director", text: "Sea como sea, tu aventura continúa. No nos decepciones." },
         { character: "Sistema", text: "Ahora eres libre de explorar. Usa el mapa para ir a tus clases o socializar." }
     ];
 
@@ -163,6 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameState.dialogueIndex >= dialogueScript.length) {
             dialogueBox.classList.add('hidden');
             return;
+        }
+        if (dialogueBox.classList.contains('hidden')) {
+            dialogueBox.classList.remove('hidden');
         }
         const currentLine = dialogueScript[gameState.dialogueIndex];
         const characterName = currentLine.character === "TÚ" ? gameState.characterData.name : currentLine.character;
@@ -227,6 +236,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function handleLogout() {
+        try {
+            await signOut(auth);
+            resetGameState();
+            showScreen('auth');
+            console.log("Sesión cerrada exitosamente.");
+        } catch (error) {
+            console.error("Error al cerrar sesión: ", error);
+        }
+    }
+
     // =================================================================
     // 5. INICIALIZACIÓN Y EVENT LISTENERS
     // =================================================================
@@ -235,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     registerTab.addEventListener('click', () => switchAuthTab('register'));
     loginForm.addEventListener('submit', handleLogin);
     registerForm.addEventListener('submit', handleRegistration);
+    logoutBtn.addEventListener('click', handleLogout);
 
     Object.keys(racesData).forEach(key => {
         const race = racesData[key];

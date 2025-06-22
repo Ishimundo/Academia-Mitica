@@ -62,13 +62,20 @@
 
     <!-- PANTALLA DE JUEGO PRINCIPAL -->
     <div id="game-screen" class="hidden">
-        <div id="game-background"></div><div id="character-sprite-container"></div><div id="dialogue-box"><div id="character-name-display" class="font-title"></div><p id="dialogue-text"></p><div id="next-indicator">▼</div></div>
+        <div id="game-background"></div>
+        <button id="logout-btn">Cerrar Sesión</button>
+        <div id="character-sprite-container"></div>
+        <div id="dialogue-box">
+            <div id="character-name-display" class="font-title"></div>
+            <p id="dialogue-text"></p>
+            <div id="next-indicator">▼</div>
+        </div>
     </div>
 
     <!-- FIREBASE SDK SCRIPTS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
         
         window.firebase = {
@@ -76,6 +83,7 @@
             getAuth,
             createUserWithEmailAndPassword,
             signInWithEmailAndPassword,
+            signOut,
             getFirestore,
             doc,
             setDoc,
