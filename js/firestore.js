@@ -2,18 +2,14 @@
 // ARCHIVO: js/firestore.js
 // RESPONSABILIDAD: Interactuar con la base de datos Firestore.
 // =================================================================
-import { getFirestore, doc, setDoc, getDoc, updateDoc, increment } from "[https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js)";
-import { app } from './firebase.js';
+import { doc, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+import { db } from './firebase.js'; // Importa el servicio de db
 import { racesData } from './gameData.js';
 
-const db = getFirestore(app);
-
 export async function getCharacter(userId) {
-    const characterDoc = await getDoc(doc(db, "characters", userId));
-    if (characterDoc.exists()) {
-        return characterDoc.data();
-    }
-    return null;
+    const characterDocRef = doc(db, "characters", userId);
+    const characterDoc = await getDoc(characterDocRef);
+    return characterDoc.exists() ? characterDoc.data() : null;
 }
 
 export async function saveCharacter(userId, characterDetails) {
@@ -31,7 +27,7 @@ export async function saveCharacter(userId, characterDetails) {
         await setDoc(doc(db, "characters", userId), characterData);
         return characterData;
     } catch (error) {
-        console.error("Error saving character:", error);
+        console.error("Error al guardar personaje:", error);
         return null;
     }
 }

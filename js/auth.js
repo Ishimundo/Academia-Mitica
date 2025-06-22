@@ -1,11 +1,9 @@
 // =================================================================
 // ARCHIVO: js/auth.js
-// RESPONSABILIDAD: Manejar la autenticación de usuarios con Firebase.
+// RESPONSABILIDAD: Manejar la autenticación de usuarios.
 // =================================================================
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-import { app } from './firebase.js';
-
-const auth = getAuth(app);
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "[https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js](https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js)";
+import { auth } from './firebase.js'; // Importa el servicio de auth
 
 export async function handleLogin(email, password) {
     try {
@@ -30,7 +28,6 @@ export async function handleLogout() {
         await signOut(auth);
         return { success: true };
     } catch (error) {
-        console.error("Error signing out:", error);
         return { error: error.code };
     }
 }
