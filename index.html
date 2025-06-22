@@ -60,25 +60,15 @@
     <div id="game-screen" class="hidden">
         <div id="game-background"></div>
         <button id="logout-btn">Cerrar Sesión</button>
-
-        <!-- Panel de Información del Jugador -->
         <div id="player-info-panel">
             <img id="player-avatar" src="https://placehold.co/100x100/162447/FFFFFF?text=?" alt="Avatar del jugador">
             <div class="player-details">
                 <h3 id="player-name-level" class="font-title">Nombre - Nv. 1</h3>
                 <p id="player-race">Raza</p>
-                <div class="stat-bar-container">
-                    <span class="stat-label">PV</span>
-                    <div class="stat-bar-bg"><div id="player-hp-bar" class="hp-bar"></div></div>
-                </div>
-                <div class="stat-bar-container">
-                    <span class="stat-label">PM</span>
-                    <div class="stat-bar-bg"><div id="player-mp-bar" class="mp-bar"></div></div>
-                </div>
+                <div class="stat-bar-container"><span class="stat-label">PV</span><div class="stat-bar-bg"><div id="player-hp-bar" class="hp-bar"></div></div></div>
+                <div class="stat-bar-container"><span class="stat-label">PM</span><div class="stat-bar-bg"><div id="player-mp-bar" class="mp-bar"></div></div></div>
             </div>
         </div>
-        
-        <!-- Menú de Navegación -->
         <nav id="navigation-menu">
             <button class="nav-button">📚 Clases</button>
             <button class="nav-button">🛡️ Clubs</button>
@@ -86,21 +76,49 @@
             <button class="nav-button">🗺️ Explorar</button>
             <button class="nav-button">⚙️ Opciones</button>
         </nav>
-
-        <!-- PANTALLA DE EXPLORACIÓN (NUEVO) -->
         <div id="exploration-screen-overlay" class="hidden">
             <div id="exploration-panel">
-                <div class="panel-header">
-                    <h2 class="font-title">Seleccionar Destino</h2>
-                    <button id="close-exploration-btn">&times;</button>
-                </div>
-                <div id="location-list">
-                    <!-- Las ubicaciones se insertarán aquí por JS -->
+                <div class="panel-header"><h2 class="font-title">Seleccionar Destino</h2><button id="close-exploration-btn">&times;</button></div>
+                <div id="location-list"></div>
+            </div>
+        </div>
+        <div id="combat-screen-overlay" class="hidden">
+            <div id="combat-log" class="font-title"></div>
+            <div class="combatant-panel player-panel">
+                <h3 id="combat-player-name" class="font-title">Jugador</h3>
+                <div class="combat-hp-bar-bg"><div id="combat-player-hp" class="combat-hp-bar"></div></div>
+                <div class="combat-mp-bar-bg"><div id="combat-player-mp" class="combat-mp-bar"></div></div>
+                <img id="combat-player-avatar" src="" alt="Avatar del jugador en combate">
+            </div>
+            <div class="combatant-panel enemy-panel">
+                <h3 id="combat-enemy-name" class="font-title">Enemigo</h3>
+                <div class="combat-hp-bar-bg"><div id="combat-enemy-hp" class="combat-hp-bar enemy-hp"></div></div>
+                <img id="combat-enemy-sprite" src="" alt="Sprite del enemigo">
+            </div>
+            <div id="combat-actions-menu">
+                <button class="action-button" id="combat-attack-btn">Atacar</button>
+                <button class="action-button" id="combat-skills-btn">Habilidades</button>
+                <button class="action-button" disabled>Objeto</button>
+                <button class="action-button" disabled>Huir</button>
+            </div>
+            <div id="skills-menu-overlay" class="hidden">
+                <div id="skills-panel">
+                    <div class="panel-header"><h2 class="font-title">Habilidades</h2><button id="close-skills-btn">&times;</button></div>
+                    <div id="skills-list"></div>
                 </div>
             </div>
         </div>
-
-        <div id="character-sprite-container"></div>
+        <div id="victory-rewards-overlay" class="hidden">
+            <div id="victory-rewards-panel">
+                <h2 class="font-title">¡Victoria!</h2>
+                <p>Has derrotado a tus enemigos.</p>
+                <div class="rewards-list">
+                    <p>XP Ganada: <span id="xp-reward">0</span></p>
+                    <p>Ecos Obtenidos: <span id="ecos-reward">0</span></p>
+                </div>
+                <button id="close-victory-panel-btn" class="action-button">Continuar</button>
+            </div>
+        </div>
         <div id="dialogue-box" class="hidden">
             <div id="character-name-display" class="font-title"></div>
             <p id="dialogue-text"></p>
@@ -112,8 +130,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-        window.firebase = { initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, getFirestore, doc, setDoc, getDoc };
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+        window.firebase = { initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, getFirestore, doc, setDoc, getDoc, updateDoc, increment };
     </script>
     <script src="js/main.js"></script>
 </body>
