@@ -19,21 +19,17 @@
     <!-- PANTALLA DE AUTENTICACIÓN -->
     <div id="auth-screen">
         <div class="container mx-auto max-w-md bg-black bg-opacity-40 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm">
-            <header class="text-center mb-6">
-                <h1 class="text-3xl md:text-5xl font-title font-bold text-white tracking-wider">Academia Mítica</h1>
-            </header>
+            <header class="text-center mb-6"><h1 class="text-3xl md:text-5xl font-title font-bold text-white tracking-wider">Academia Mítica</h1></header>
             <main>
                 <div class="flex border-b border-gray-600 mb-4">
                     <button id="login-tab" class="tab active">Iniciar Sesión</button>
                     <button id="register-tab" class="tab">Registrarse</button>
                 </div>
-                <!-- Formulario de Iniciar Sesión -->
                 <form id="login-form">
                     <input type="email" id="login-email" placeholder="Correo electrónico" class="form-input mb-4" required>
                     <input type="password" id="login-password" placeholder="Contraseña" class="form-input mb-6" required>
                     <button type="submit" class="action-button w-full">Entrar</button>
                 </form>
-                <!-- Formulario de Registrarse -->
                 <form id="register-form" class="hidden">
                     <input type="email" id="register-email" placeholder="Correo electrónico" class="form-input mb-4" required>
                     <input type="password" id="register-password" placeholder="Contraseña (mín. 6 caracteres)" class="form-input mb-6" required>
@@ -44,15 +40,15 @@
         </div>
     </div>
 
-    <!-- Contenedor para la Pantalla de Selección de Raza -->
+    <!-- PANTALLA DE SELECCIÓN DE RAZA -->
     <div id="race-selection-screen" class="hidden">
-        <div class="container mx-auto max-w-7xl bg-black bg-opacity-40 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm">
+         <div class="container mx-auto max-w-7xl bg-black bg-opacity-40 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm">
              <header class="text-center mb-6 md:mb-10"><h1 class="text-4xl md:text-6xl font-title font-bold text-white tracking-wider">Academia Mítica</h1><p class="text-lg md:text-xl text-gray-400 mt-2">Elige tu linaje. Forja tu destino.</p></header>
              <main class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-1"><h2 class="text-2xl font-title text-center lg:text-left mb-4">Selecciona tu Raza</h2><div id="race-selection-container" class="space-y-4"></div></div><div id="details-panel" class="lg:col-span-2 bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700"><div id="placeholder-panel" class="text-center flex flex-col items-center justify-center h-full"><svg class="w-24 h-24 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><h3 class="font-title text-xl text-gray-400">Selecciona una raza para ver sus detalles</h3><p class="text-gray-500">Cada linaje posee dones y desafíos únicos.</p></div><div id="race-details-content" class="hidden"></div></div></main>
         </div>
     </div>
 
-    <!-- Contenedor para la Pantalla de Creación de Personaje -->
+    <!-- PANTALLA DE CREACIÓN DE PERSONAJE -->
     <div id="character-creation-screen" class="hidden">
         <div class="container mx-auto max-w-2xl bg-black bg-opacity-40 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm">
             <header class="text-center mb-6 md:mb-8"><h1 class="text-3xl md:text-5xl font-title font-bold text-white tracking-wider">Crea tu Personaje</h1><p id="race-subtitle" class="text-lg md:text-xl text-yellow-400 mt-2"></p></header>
@@ -64,34 +60,61 @@
     <div id="game-screen" class="hidden">
         <div id="game-background"></div>
         <button id="logout-btn">Cerrar Sesión</button>
+
+        <!-- Panel de Información del Jugador -->
+        <div id="player-info-panel">
+            <img id="player-avatar" src="https://placehold.co/100x100/162447/FFFFFF?text=?" alt="Avatar del jugador">
+            <div class="player-details">
+                <h3 id="player-name-level" class="font-title">Nombre - Nv. 1</h3>
+                <p id="player-race">Raza</p>
+                <div class="stat-bar-container">
+                    <span class="stat-label">PV</span>
+                    <div class="stat-bar-bg"><div id="player-hp-bar" class="hp-bar"></div></div>
+                </div>
+                <div class="stat-bar-container">
+                    <span class="stat-label">PM</span>
+                    <div class="stat-bar-bg"><div id="player-mp-bar" class="mp-bar"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menú de Navegación -->
+        <nav id="navigation-menu">
+            <button class="nav-button">📚 Clases</button>
+            <button class="nav-button">🛡️ Clubs</button>
+            <button class="nav-button">⚔️ Arena</button>
+            <button class="nav-button">🗺️ Explorar</button>
+            <button class="nav-button">⚙️ Opciones</button>
+        </nav>
+
+        <!-- PANTALLA DE EXPLORACIÓN (NUEVO) -->
+        <div id="exploration-screen-overlay" class="hidden">
+            <div id="exploration-panel">
+                <div class="panel-header">
+                    <h2 class="font-title">Seleccionar Destino</h2>
+                    <button id="close-exploration-btn">&times;</button>
+                </div>
+                <div id="location-list">
+                    <!-- Las ubicaciones se insertarán aquí por JS -->
+                </div>
+            </div>
+        </div>
+
         <div id="character-sprite-container"></div>
-        <div id="dialogue-box">
+        <div id="dialogue-box" class="hidden">
             <div id="character-name-display" class="font-title"></div>
             <p id="dialogue-text"></p>
             <div id="next-indicator">▼</div>
         </div>
     </div>
 
-    <!-- FIREBASE SDK SCRIPTS -->
+    <!-- FIREBASE SDK Y JS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-        
-        window.firebase = {
-            initializeApp,
-            getAuth,
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signOut,
-            getFirestore,
-            doc,
-            setDoc,
-            getDoc
-        };
+        window.firebase = { initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, getFirestore, doc, setDoc, getDoc };
     </script>
-    
-    <!-- NUESTRO ARCHIVO JAVASCRIPT -->
     <script src="js/main.js"></script>
 </body>
 </html>
