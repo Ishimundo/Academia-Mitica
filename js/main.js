@@ -50,13 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetGameState = () => { gameState = { currentUser: null, characterData: null, chosenRace: null, characterName: null, selectedAvatar: null }; };
     resetGameState();
 
-    const screens = {
-        auth: document.getElementById('auth-screen'),
-        raceSelection: document.getElementById('race-selection-screen'),
-        characterCreation: document.getElementById('character-creation-screen'),
-        game: document.getElementById('game-screen')
-    };
-    // ... Todos los demás selectores de elementos del DOM
+    const screens = { auth: document.getElementById('auth-screen'), raceSelection: document.getElementById('race-selection-screen'), characterCreation: document.getElementById('character-creation-screen'), game: document.getElementById('game-screen') };
     const loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'),
           loginTab = document.getElementById('login-tab'), registerTab = document.getElementById('register-tab'),
           authError = document.getElementById('auth-error'), logoutBtn = document.getElementById('logout-btn'),
@@ -101,6 +95,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    function updatePlayerHub() {
+        if (!gameState.characterData) return;
+        const data = gameState.characterData;
+        const raceInfo = racesData[data.race];
+        playerInfoPanel.avatar.src = data.avatar;
+        playerInfoPanel.nameLevel.textContent = `${data.name} - Nv. ${data.level}`;
+        playerInfoPanel.race.textContent = raceInfo.name;
+        const maxHP = 50 + (data.stats.VIT * 10);
+        const maxMP = 30 + (data.stats.INT * 5);
+        playerInfoPanel.hpBar.style.width = `100%`;
+        playerInfoPanel.mpBar.style.width = `100%`;
+    }
+
+    function startGame() { showScreen('game'); updatePlayerHub(); }
+
+    async function handleLogin(event) {
+        event.preventDefault();
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value);
+            gameState.currentUser = userCredential.user;
+            const characterDoc = await getDoc(doc(db, "characters", gameState.currentUser.uid));
+            if (characterDoc.exists()) {
+                gameState.characterData = characterDoc.data();
+                startGame();
+            } else {
+                showScreen('raceSelection');
+            }
+        } catch (error) { authError.textContent = "Error: " + error.code; }
+    }
+    async function handleRegistration(event) {
+        event.preventDefault();
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, document.getElementById('register-email').value, document.getElementById('register-password').value);
+            gameState.currentUser = userCredential.user;
+            showScreen('raceSelection');
+        } catch (error) { authError.textContent = "Error: " + error.code; }
+    }
+    async function handleLogout() { try { await signOut(auth); resetGameState(); showScreen('auth'); } catch (error) { console.error("Error al cerrar sesión: ", error); } }
+    async function saveCharacter() {
+        if (!gameState.currentUser) return;
+        const characterData = {
+            name: gameState.characterName, race: gameState.chosenRace,
+            avatar: gameState.selectedAvatar, level: 1, xp: 0, ecos: 0,
+            stats: racesData[gameState.chosenRace].stats
+        };
+        try {
+            await setDoc(doc(db, "characters", gameState.currentUser.uid), characterData);
+            gameState.characterData = characterData;
+            startGame();
+        } catch (error) { console.error("Error al guardar personaje: ", error); }
+    }
+
     // --- LÓGICA DE COMBATE ---
     function updateCombatUI() {
         if (!combatState.player) return;
@@ -144,28 +190,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         closeSkillsMenu();
         combatState.player.currentPM -= skill.cost;
-        
-        let damage = 0;
         let logMessage = '';
-
-        switch(skill.type) {
-            case 'magic':
-                damage = Math.max(1, skill.power + (combatState.player.INT * 2) - combatState.enemy.VIT);
-                combatState.enemy.currentHP -= damage;
-                logMessage = `${combatState.player.name} usa ${skill.name} por ${damage} de daño mágico!`;
-                break;
-            case 'physical':
-                damage = Math.max(1, skill.power + (combatState.player.FUE * 2) - combatState.enemy.VIT);
-                combatState.enemy.currentHP -= damage;
-                logMessage = `${combatState.player.name} usa ${skill.name} por ${damage} de daño físico!`;
-                break;
-            case 'heal':
-                const healing = Math.max(1, skill.power + (combatState.player.CAR * 2));
-                combatState.player.currentHP = Math.min(combatState.player.maxHP, combatState.player.currentHP + healing);
-                logMessage = `${combatState.player.name} usa ${skill.name} y se cura ${healing} PV!`;
-                break;
+        if(skill.type === 'magic') {
+            const damage = Math.max(1, skill.power + (combatState.player.INT * 2) - combatState.enemy.VIT);
+            combatState.enemy.currentHP -= damage;
+            logMessage = `${combatState.player.name} usa ${skill.name} por ${damage} de daño mágico!`;
+        } else if (skill.type === 'physical') {
+            const damage = Math.max(1, skill.power + (combatState.player.FUE * 2) - combatState.enemy.VIT);
+            combatState.enemy.currentHP -= damage;
+            logMessage = `${combatState.player.name} usa ${skill.name} por ${damage} de daño físico!`;
+        } else if (skill.type === 'heal') {
+            const healing = Math.max(1, skill.power + (combatState.player.CAR * 2));
+            combatState.player.currentHP = Math.min(combatState.player.maxHP, combatState.player.currentHP + healing);
+            logMessage = `${combatState.player.name} usa ${skill.name} y se cura ${healing} PV!`;
         }
-        
         showCombatLog(logMessage);
         updateCombatUI();
     }
@@ -204,17 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isVictory) {
             const rewards = combatState.enemy.rewards;
             const userRef = doc(db, "characters", gameState.currentUser.uid);
-            await updateDoc(userRef, {
-                xp: increment(rewards.xp),
-                ecos: increment(rewards.ecos)
-            });
+            await updateDoc(userRef, { xp: increment(rewards.xp), ecos: increment(rewards.ecos) });
             gameState.characterData.xp = (gameState.characterData.xp || 0) + rewards.xp;
             gameState.characterData.ecos = (gameState.characterData.ecos || 0) + rewards.ecos;
             setTimeout(() => showVictoryScreen(rewards), 2000);
         } else {
-            setTimeout(() => {
-                combatScreenElements.overlay.classList.remove('visible');
-            }, 3000);
+            setTimeout(() => { combatScreenElements.overlay.classList.remove('visible'); }, 3000);
         }
     }
 
@@ -229,11 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const enemyTemplate = enemiesData[enemyId];
         const playerData = gameState.characterData;
         combatState = {
-            player: {
-                ...playerData.stats, name: playerData.name, avatar: playerData.avatar,
-                maxHP: 50 + (playerData.stats.VIT * 10), currentHP: 50 + (playerData.stats.VIT * 10),
-                maxPM: 30 + (playerData.stats.INT * 5), currentPM: 30 + (playerData.stats.INT * 5),
-            },
+            player: { ...playerData.stats, name: playerData.name, avatar: playerData.avatar, maxHP: 50 + (playerData.stats.VIT * 10), currentHP: 50 + (playerData.stats.VIT * 10), maxPM: 30 + (playerData.stats.INT * 5), currentPM: 30 + (playerData.stats.INT * 5) },
             enemy: { ...enemyTemplate.stats, name: enemyTemplate.name, sprite: enemyTemplate.sprite, rewards: enemyTemplate.rewards },
             isOver: false
         };
@@ -247,9 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         combatScreenElements.overlay.classList.add('visible');
         showCombatLog(`¡Un ${combatState.enemy.name} salvaje aparece!`, 2000);
         
-        setTimeout(() => {
-             combatScreenElements.actionsMenu.classList.remove('hidden');
-        }, 2500);
+        setTimeout(() => { combatScreenElements.actionsMenu.classList.remove('hidden'); }, 2500);
     }
     
     function openSkillsMenu() {
@@ -261,12 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const button = document.createElement('button');
             button.className = 'skill-button';
             button.disabled = combatState.player.currentPM < skill.cost;
-            button.innerHTML = `
-                <div class="skill-header">
-                    <span>${skill.name}</span>
-                    <span class="skill-cost">${skill.cost} PM</span>
-                </div>
-                <p class="skill-description">${skill.description}</p>`;
+            button.innerHTML = `<div class="skill-header"><span>${skill.name}</span><span class="skill-cost">${skill.cost} PM</span></div><p class="skill-description">${skill.description}</p>`;
             button.addEventListener('click', () => executePlayerAction(() => playerUseSkill(skill)));
             skillsList.appendChild(button);
         });
@@ -274,23 +296,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function closeSkillsMenu() { combatScreenElements.skillsMenu.classList.add('hidden'); }
     
+    function openExplorationScreen() {
+        locationListContainer.innerHTML = '';
+        locationsData.forEach(location => {
+            const card = document.createElement('div');
+            card.className = 'location-card';
+            card.innerHTML = `
+                <img src="${location.image}" alt="Imagen de ${location.name}">
+                <div class="location-card-content">
+                    <h3>${location.name}</h3>
+                    <p>${location.description}</p>
+                    <span class="location-difficulty ${location.difficultyColor}">Peligro: ${location.difficulty}</span>
+                </div>`;
+            card.addEventListener('click', () => {
+                closeExplorationScreen();
+                if (location.id === 'whispering_woods') {
+                    startCombat('slime');
+                } else {
+                    alert(`La zona "${location.name}" aún no está disponible.`);
+                }
+            });
+            locationListContainer.appendChild(card);
+        });
+        explorationOverlay.classList.remove('hidden');
+    }
+    function closeExplorationScreen() { explorationOverlay.classList.add('hidden'); }
+
     function displayRaceDetails(raceKey) {
         const race = racesData[raceKey];
         const createStatBar = (statName, value) => `<div class="mb-2"><div class="flex justify-between text-sm mb-1"><span class="font-bold text-gray-300">${statName.toUpperCase()}</span><span class="text-gray-400">${value}/10</span></div><div class="stat-bar-bg w-full h-2.5 rounded-full"><div class="stat-bar-fill h-2.5 rounded-full" style="width: ${value * 10}%"></div></div></div>`;
-        raceDetailsContent.innerHTML = `
-            <img src="${race.image}" alt="Imagen de ${race.name}" class="w-full h-48 object-cover rounded-lg mb-4">
-            <h3 class="text-3xl font-title text-yellow-400 mb-2">${race.name}</h3>
-            <p class="text-gray-400 italic mb-6">${race.description}</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h4 class="font-title text-xl mb-3 text-white">Estadísticas Base</h4>
-                    ${Object.entries(race.stats).map(([key, value]) => createStatBar(key, value)).join('')}
-                </div>
-                <div class="space-y-4">
-                    <div><h4 class="font-title text-xl mb-2 text-white">Habilidades Iniciales</h4><ul class="list-disc list-inside text-gray-400">${race.abilities.map(a => `<li>${a.name}</li>`).join('')}</ul></div>
-                </div>
-            </div>
-            <div class="text-center mt-8"><button id="confirm-race-btn" class="action-button">Confirmar Linaje</button></div>`;
+        raceDetailsContent.innerHTML = `<img src="${race.image}" alt="Imagen de ${race.name}" class="w-full h-48 object-cover rounded-lg mb-4"><h3 class="text-3xl font-title text-yellow-400 mb-2">${race.name}</h3><p class="text-gray-400 italic mb-6">${race.description}</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><h4 class="font-title text-xl mb-3 text-white">Estadísticas Base</h4>${Object.entries(race.stats).map(([key, value]) => createStatBar(key, value)).join('')}</div><div class="space-y-4"><div><h4 class="font-title text-xl mb-2 text-white">Habilidades Iniciales</h4><ul class="list-disc list-inside text-gray-400">${race.abilities.map(a => `<li>${a.name}</li>`).join('')}</ul></div></div></div><div class="text-center mt-8"><button id="confirm-race-btn" class="action-button">Confirmar Linaje</button></div>`;
         placeholderPanel.classList.add('hidden');
         raceDetailsContent.classList.remove('hidden');
         document.getElementById('confirm-race-btn').addEventListener('click', () => {
@@ -320,107 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function checkFormCompletion() {
-        const charNameInput = document.getElementById('char-name');
-        const confirmCharacterBtn = document.getElementById('confirm-character-btn');
         gameState.characterName = charNameInput.value.trim();
         confirmCharacterBtn.disabled = !(gameState.characterName && gameState.selectedAvatar);
     }
     
-    function updatePlayerHub() {
-        if (!gameState.characterData) return;
-        const data = gameState.characterData;
-        const raceInfo = racesData[data.race];
-        playerInfoPanel.avatar.src = data.avatar;
-        playerInfoPanel.nameLevel.textContent = `${data.name} - Nv. ${data.level}`;
-        playerInfoPanel.race.textContent = raceInfo.name;
-        const maxHP = 50 + (data.stats.VIT * 10);
-        const maxMP = 30 + (data.stats.INT * 5);
-        // En un juego real, guardarías y cargarías el HP/MP actual. Por ahora lo reseteamos.
-        playerInfoPanel.hpBar.style.width = `100%`;
-        playerInfoPanel.mpBar.style.width = `100%`;
-    }
-
-    function startGame() {
-        showScreen('game');
-        updatePlayerHub();
-    }
-    
-    async function handleLogin(event) {
-        event.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            gameState.currentUser = userCredential.user;
-            const characterDoc = await getDoc(doc(db, "characters", gameState.currentUser.uid));
-            if (characterDoc.exists()) {
-                gameState.characterData = characterDoc.data();
-                startGame();
-            } else {
-                showScreen('raceSelection');
-            }
-        } catch (error) { authError.textContent = "Error: " + error.code; }
-    }
-
-    async function handleRegistration(event) {
-        event.preventDefault();
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            gameState.currentUser = userCredential.user;
-            showScreen('raceSelection');
-        } catch (error) { authError.textContent = "Error: " + error.code; }
-    }
-
-    async function saveCharacter() {
-        if (!gameState.currentUser) return;
-        const characterData = {
-            name: gameState.characterName, race: gameState.chosenRace,
-            avatar: gameState.selectedAvatar, level: 1, xp: 0, ecos: 0,
-            stats: racesData[gameState.chosenRace].stats
-        };
-        try {
-            await setDoc(doc(db, "characters", gameState.currentUser.uid), characterData);
-            gameState.characterData = characterData;
-            startGame();
-        } catch (error) { console.error("Error al guardar personaje: ", error); }
-    }
-
-    async function handleLogout() {
-        try {
-            await signOut(auth);
-            resetGameState();
-            showScreen('auth');
-        } catch (error) { console.error("Error al cerrar sesión: ", error); }
-    }
-
-    function openExplorationScreen() {
-        locationListContainer.innerHTML = '';
-        locationsData.forEach(location => {
-            const card = document.createElement('div');
-            card.className = 'location-card';
-            card.innerHTML = `
-                <img src="${location.image}" alt="Imagen de ${location.name}">
-                <div class="location-card-content">
-                    <h3>${location.name}</h3>
-                    <p>${location.description}</p>
-                    <span class="location-difficulty ${location.difficultyColor}">Peligro: ${location.difficulty}</span>
-                </div>`;
-            card.addEventListener('click', () => {
-                closeExplorationScreen();
-                if (location.id === 'whispering_woods') {
-                    startCombat('slime');
-                } else {
-                    alert(`La zona "${location.name}" aún no está disponible.`);
-                }
-            });
-            locationListContainer.appendChild(card);
-        });
-        explorationOverlay.classList.remove('hidden');
-    }
-    function closeExplorationScreen() { explorationOverlay.classList.add('hidden'); }
-
     // 5. INICIALIZACIÓN Y EVENT LISTENERS
     loginTab.addEventListener('click', () => switchAuthTab('login'));
     registerTab.addEventListener('click', () => switchAuthTab('register'));
@@ -428,12 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
     registerForm.addEventListener('submit', handleRegistration);
     logoutBtn.addEventListener('click', handleLogout);
     
-    document.getElementById('confirm-character-btn').addEventListener('click', () => {
-        if (!document.getElementById('confirm-character-btn').disabled) {
-            saveCharacter();
-        }
-    });
-    document.getElementById('char-name').addEventListener('input', checkFormCompletion);
+    confirmCharacterBtn.addEventListener('click', () => { if (!confirmCharacterBtn.disabled) saveCharacter(); });
+    charNameInput.addEventListener('input', checkFormCompletion);
     
     navMenu.addEventListener('click', (event) => {
         if (event.target.classList.contains('nav-button')) {
